@@ -22,7 +22,7 @@ export const noweId = () =>
     ? crypto.randomUUID()
     : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 
-export const DOMYSLNE_USTAWIENIA: Ustawienia = { profil: 'szkola', grupa: 'obie', lektorat: 'oba' }
+export const DOMYSLNE_USTAWIENIA: Ustawienia = { profil: 'szkola', grupa: 'obie', lektorat: 'ang' }
 
 export async function wszystkieWpisy(): Promise<Wpis[]> {
   return (await db()).getAll('wpisy')
