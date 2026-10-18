@@ -1,5 +1,7 @@
 import { Naglowek } from '../components/Elementy'
-import { DNI_KROTKIE, MIESIACE_DOP, dzienTygodnia, roznicaDni, zakresSlownie, zaIleDni, zISO } from '../logic/dates'
+import { DNI, DNI_KROTKIE, MIESIACE_DOP, dzienTygodnia, roznicaDni, zakresSlownie, zaIleDni, zISO } from '../logic/dates'
+import { DNI_ZAJEC_STUDIA } from '../data/studia'
+import { lekcjeDnia } from '../logic/schedule'
 import { opisWpisu } from '../logic/opis'
 import { useApp } from '../kontekst'
 import type { DataISO, WpisSprawdzian, WpisWolne, WpisWydarzenie } from '../model'
@@ -54,8 +56,45 @@ export function ListaPozycji({ wpisy }: { wpisy: Pozycja[] }) {
   )
 }
 
+/** Studia: najbliższe dni zjazdu z godzinami zajęć. */
+function Zjazdy() {
+  const { ustawienia, dzis, otworzDzien } = useApp()
+  const dni = DNI_ZAJEC_STUDIA.filter((d) => d >= dzis)
+    .map((d) => ({ d, lekcje: lekcjeDnia(d, [], ustawienia) }))
+    .filter((x) => x.lekcje.length)
+    .slice(0, 6)
+  if (!dni.length) return <div className="pusto">Brak kolejnych zajęć w planie.</div>
+  return (
+    <div>
+      {dni.map(({ d, lekcje }) => {
+        const data = zISO(d)
+        const online = lekcje.every((l) => l.zajecia.every((z) => z.online))
+        return (
+          <button key={d} className="pozycja zjazd" onClick={() => otworzDzien(d)}>
+            <span className="data-blok">
+              <b>{data.getDate()}</b>
+              <span>{MIESIACE_DOP[data.getMonth()].slice(0, 3)}</span>
+            </span>
+            <span className="pozycja-tresc">
+              <span className="przedmiot" style={{ display: 'block' }}>
+                {DNI[dzienTygodnia(d)]}, {lekcje[0].od.replace(/^0/, '')}–{lekcje[lekcje.length - 1].do}
+              </span>
+              <span className="nauczyciel" style={{ display: 'block' }}>
+                {lekcje.length} {lekcje.length === 1 ? 'blok' : lekcje.length < 5 ? 'bloki' : 'bloków'} zajęć
+                {online ? ' · online' : ''}
+              </span>
+            </span>
+            <span className="za-ile">{zaIleDni(roznicaDni(dzis, d))}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function WidokNadchodzace() {
-  const { wpisy, dzis } = useApp()
+  const { wpisy, dzis, ustawienia } = useApp()
+  const studia = ustawienia.profil === 'studia'
   const sortuj = (a: Pozycja, b: Pozycja) => poczatek(a).localeCompare(poczatek(b))
   const sprawdziany = wpisy
     .filter((w): w is WpisSprawdzian => w.typ === 'sprawdzian' && w.data >= dzis)
@@ -68,10 +107,22 @@ export function WidokNadchodzace() {
 
   return (
     <div>
-      <Naglowek tytul="Nadchodzące" podtytul={<span>Sprawdziany, wydarzenia i najbliższe dni wolne</span>} />
+      <Naglowek
+        tytul="Nadchodzące"
+        podtytul={<span>{studia ? 'Zjazdy, egzaminy i wydarzenia' : 'Sprawdziany, wydarzenia i najbliższe dni wolne'}</span>}
+      />
 
-      <h2 className="sekcja-tytul" style={{ marginTop: 8 }}>
-        Sprawdziany i kartkówki
+      {studia && (
+        <>
+          <h2 className="sekcja-tytul" style={{ marginTop: 8 }}>
+            Najbliższe zjazdy
+          </h2>
+          <Zjazdy />
+        </>
+      )}
+
+      <h2 className="sekcja-tytul" style={studia ? undefined : { marginTop: 8 }}>
+        {studia ? 'Egzaminy i kolokwia' : 'Sprawdziany i kartkówki'}
       </h2>
       {sprawdziany.length ? (
         <ListaPozycji wpisy={sprawdziany} />
@@ -82,8 +133,12 @@ export function WidokNadchodzace() {
       <h2 className="sekcja-tytul">Wycieczki i wydarzenia</h2>
       {wydarzenia.length ? <ListaPozycji wpisy={wydarzenia} /> : <div className="pusto">Brak wydarzeń.</div>}
 
-      <h2 className="sekcja-tytul">Dni wolne</h2>
-      {wolne.length ? <ListaPozycji wpisy={wolne} /> : <div className="pusto">Brak dni wolnych.</div>}
+      {!studia && (
+        <>
+          <h2 className="sekcja-tytul">Dni wolne</h2>
+          {wolne.length ? <ListaPozycji wpisy={wolne} /> : <div className="pusto">Brak dni wolnych.</div>}
+        </>
+      )}
     </div>
   )
 }

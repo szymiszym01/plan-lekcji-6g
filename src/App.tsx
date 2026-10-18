@@ -8,7 +8,8 @@ import {
 } from './db'
 import { doISO, dodajDni, dzienTygodnia } from './logic/dates'
 import { AppKontekst, type Kontekst, type OpcjeOkna, type Szablon } from './kontekst'
-import type { DataISO, Ustawienia, Wpis } from './model'
+import { profilWpisu, type DataISO, type Ustawienia, type Wpis } from './model'
+import { DNI_ZAJEC_STUDIA } from './data/studia'
 import { WidokDzien } from './views/Dzien'
 import { WidokMiesiac } from './views/Miesiac'
 import { WidokNadchodzace } from './views/Nadchodzace'
@@ -65,9 +66,12 @@ export default function App() {
     })()
   }, [])
 
+  // Każdy plan (klasa 6G / studia) ma własne wpisy.
+  const wpisyProfilu = useMemo(() => wpisy.filter((w) => profilWpisu(w) === ustawienia.profil), [wpisy, ustawienia.profil])
+
   const kontekst = useMemo<Kontekst>(
     () => ({
-      wpisy,
+      wpisy: wpisyProfilu,
       ustawienia,
       dzis,
       odswiez,
@@ -89,7 +93,7 @@ export default function App() {
         timerKomunikatu.current = window.setTimeout(() => setTekst(null), 2200)
       },
     }),
-    [wpisy, ustawienia, dzis, odswiez],
+    [wpisyProfilu, ustawienia, dzis, odswiez],
   )
 
   const zamknijOkno = (id: string | null) => {
@@ -105,8 +109,13 @@ export default function App() {
 
   const nowyZWidoku = () => {
     let d = widok === 'dzis' || widok === 'tydzien' ? data : dzis
-    // W weekend proponujemy najbliższy poniedziałek.
-    if (dzienTygodnia(d) > 4) d = dodajDni(d, 7 - dzienTygodnia(d))
+    if (ustawienia.profil === 'studia') {
+      // Bez zajęć w tym dniu proponujemy najbliższy dzień zjazdu.
+      if (!DNI_ZAJEC_STUDIA.includes(d)) d = DNI_ZAJEC_STUDIA.find((x) => x > d) ?? d
+    } else if (dzienTygodnia(d) > 4) {
+      // W weekend proponujemy najbliższy poniedziałek.
+      d = dodajDni(d, 7 - dzienTygodnia(d))
+    }
     setEdycja({ szablon: { typ: widok === 'nadchodzace' ? 'sprawdzian' : 'notatka', data: d } })
   }
 

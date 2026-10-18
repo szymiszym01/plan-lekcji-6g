@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react'
-import { PRZEDMIOTY } from '../data/timetable'
+import { PRZEDMIOTY_STUDIA } from '../data/studia'
+import { PRZEDMIOTY as PRZEDMIOTY_SZKOLA } from '../data/timetable'
 import { noweId, usunWpis, zapiszWpis } from '../db'
 import { dataKrotko, dzisiaj } from '../logic/dates'
 import { opcjeLekcji } from '../logic/schedule'
@@ -93,12 +94,20 @@ export function Edytor({ wpis, szablon, onZamknij }: { wpis?: Wpis; szablon?: Sz
   // Pojedyncza data i zakres są synchronizowane, by zmiana typu nie gubiła daty.
   const ustawDate = (v: string) => setF((p) => ({ ...p, data: v, od: v, do: p.do < v ? v : p.do }))
 
+  // Wpis należy do planu, w którym powstał; nowe wpisy trafiają do aktywnego planu.
+  const profil = wpis?.profil ?? (wpis ? 'szkola' : ustawienia.profil)
+  const PRZEDMIOTY = profil === 'studia' ? PRZEDMIOTY_STUDIA : PRZEDMIOTY_SZKOLA
   const grupaOpcji = wpis && 'grupa' in wpis && wpis.grupa ? 'obie' : ustawienia.grupa
-  const opcje = opcjeLekcji(f.data, grupaOpcji)
+  const opcje = opcjeLekcji(f.data, { ...ustawienia, profil, grupa: grupaOpcji })
   const bezLekcji = opcje.length === 0
 
   function zbuduj(): Wpis | string {
-    const baza = { id, utworzono: wpis?.utworzono ?? Date.now(), ...(wpis?.zrodlo ? { zrodlo: wpis.zrodlo } : {}) }
+    const baza = {
+      id,
+      utworzono: wpis?.utworzono ?? Date.now(),
+      profil,
+      ...(wpis?.zrodlo ? { zrodlo: wpis.zrodlo } : {}),
+    }
     const [nrS, grS] = f.lekcja.split('-')
     const nr = Number(nrS) || undefined
     const grupa = grS ? (Number(grS) as 1 | 2) : undefined
@@ -164,7 +173,7 @@ export function Edytor({ wpis, szablon, onZamknij }: { wpis?: Wpis; szablon?: Sz
   const wyborLekcji = (opcjonalna: boolean) => (
     <Pole etykieta={opcjonalna ? 'Lekcja (opcjonalnie)' : 'Lekcja'}>
       <select value={f.lekcja} onChange={(e) => ustaw('lekcja', e.target.value)} disabled={bezLekcji}>
-        <option value="">{bezLekcji ? 'W ten dzień nie ma lekcji' : opcjonalna ? 'Automatycznie (lekcja tego przedmiotu)' : 'Wybierz lekcję…'}</option>
+        <option value="">{bezLekcji ? 'W ten dzień nie ma zajęć' : opcjonalna ? 'Automatycznie (zajęcia z tego przedmiotu)' : 'Wybierz lekcję…'}</option>
         {opcje.map((o) => (
           <option key={o.wartosc} value={o.wartosc}>
             {o.etykieta}

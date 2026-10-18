@@ -13,10 +13,15 @@ export const ETYKIETY_WOLNEGO: Record<RodzajWolnego, string> = {
   dyrektorski: 'Dzień dyrektorski',
 }
 
+/** Który plan jest aktywny: klasa 6G czy studia. */
+export type Profil = 'szkola' | 'studia'
+
 interface Baza {
   id: string
   utworzono: number
   zrodlo?: 'kalendarz MEN'
+  /** Brak = szkoła (wpisy sprzed dodania studiów). */
+  profil?: Profil
 }
 
 export interface WpisNotatka extends Baza {
@@ -80,7 +85,12 @@ export const NAZWY_TYPOW: Record<TypWpisu, string> = {
 }
 
 export type WyborGrupy = '1' | '2' | 'obie'
+export type WyborLektoratu = 'ang' | 'niem' | 'oba'
 
 export interface Ustawienia {
+  profil: Profil
   grupa: WyborGrupy
+  lektorat: WyborLektoratu
 }
+
+export const profilWpisu = (w: Wpis): Profil => w.profil ?? 'szkola'

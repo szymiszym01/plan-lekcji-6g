@@ -119,6 +119,35 @@ button {
   color: var(--tlo);
 }
 
+.chipy-profil {
+  display: flex;
+  gap: 6px;
+}
+
+button.chip {
+  position: relative;
+  background: transparent;
+  color: var(--bordo);
+}
+
+button.chip.pelny {
+  background: var(--bordo);
+  color: var(--tlo);
+}
+
+/* 44 px obszaru dotyku przy niższym chipie */
+button.chip::after {
+  content: '';
+  position: absolute;
+  inset: -8px -3px;
+}
+
+.chip.okres {
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--bordo);
+  border: 0;
+}
+
 .naglowek {
   margin: 10px 0 16px;
 }
@@ -333,6 +362,17 @@ button {
 
 .zajecia.bez-grupy {
   grid-template-columns: 1fr auto;
+}
+
+/* Studia: forma zajęć nad przedmiotem zamiast pigułki z boku */
+.zajecia:has(.forma) {
+  grid-template-columns: 1fr auto;
+}
+
+.zajecia .forma {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-bottom: 4px;
 }
 
 .przedmiot {
@@ -756,7 +796,7 @@ button {
   color: var(--bordo);
 }
 
-.naglowek-dnia.dzis span {
+.naglowek-dnia.dzis > span:last-child {
   background: var(--bordo);
   color: var(--tlo);
   border-radius: 999px;
@@ -827,6 +867,47 @@ button {
   line-height: 1.1;
 }
 
+/* Studia: kolumny tylko z dniami zjazdu */
+.kolumny-studia {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  width: max-content;
+  padding: 0 16px;
+}
+
+.kolumna-studia {
+  width: 268px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scroll-snap-align: start;
+  scroll-margin-left: 16px;
+}
+
+.blok-studia {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.czas-studia {
+  font-size: 13px;
+  font-weight: 800;
+  padding-left: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kolumna-studia .karta .kropki {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+}
+
+.kolumna-studia .przedmiot {
+  font-size: 15px;
+}
+
 /* ---------- Miesiąc ---------- */
 
 .siatka-miesiaca {
@@ -868,6 +949,10 @@ button {
   background: var(--paski);
 }
 
+.komorka.zajecia {
+  box-shadow: inset 0 -4px 0 var(--bordo);
+}
+
 .komorka.poza {
   opacity: 0.35;
 }
@@ -905,6 +990,13 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.kropka.zjazd {
+  border-radius: 2px;
+  height: 4px !important;
+  background: var(--bordo);
+  box-shadow: none;
 }
 
 .legenda .kropka {
@@ -962,6 +1054,11 @@ button {
 
 .pozycja.wydarzenie .data-blok {
   background: var(--cieply);
+}
+
+.pozycja.zjazd .data-blok {
+  background: var(--bordo);
+  color: var(--tlo);
 }
 
 .pozycja.wolne .data-blok {

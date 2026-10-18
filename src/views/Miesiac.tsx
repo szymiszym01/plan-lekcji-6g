@@ -9,7 +9,7 @@ import { ListaPozycji } from './Nadchodzace'
 
 function Komorka(props: { data: DataISO; poza: boolean }) {
   const { wpisy, ustawienia, dzis, otworzDzien, nowyWpis } = useApp()
-  const dzien = opisDnia(props.data, wpisy, ustawienia.grupa)
+  const dzien = opisDnia(props.data, wpisy, ustawienia)
   const lp = useLongPress(
     () => nowyWpis({ typ: 'wydarzenie', data: props.data }),
     () => otworzDzien(props.data),
@@ -19,7 +19,8 @@ function Komorka(props: { data: DataISO; poza: boolean }) {
   const kropki = dzien.wszystkie.filter((w) => w.typ !== 'wolne').slice(0, 4)
   const klasy = [
     'komorka',
-    wolny ? 'wolny' : r === 'weekend' ? 'weekend' : '',
+    wolny ? 'wolny' : r === 'weekend' || r === 'brak' ? 'weekend' : '',
+    ustawienia.profil === 'studia' && r === 'lekcje' ? 'zajecia' : '',
     props.poza ? 'poza' : '',
     props.data === dzis ? 'dzis' : '',
   ].join(' ')
@@ -36,7 +37,8 @@ function Komorka(props: { data: DataISO; poza: boolean }) {
 }
 
 export function WidokMiesiac({ data }: { data: DataISO }) {
-  const { wpisy, dzis } = useApp()
+  const { wpisy, dzis, ustawienia } = useApp()
+  const studia = ustawienia.profil === 'studia'
   const [miesiac, setMiesiac] = useState(() => data.slice(0, 7) + '-01')
   const d0 = zISO(miesiac)
   const rok = d0.getFullYear()
@@ -100,6 +102,11 @@ export function WidokMiesiac({ data }: { data: DataISO }) {
         <span><i className="kropka notatka" /> notatka</span>
         <span><i className="kropka zmiana" /> zmiana</span>
         <span><i className="kropka wolne" /> dzień wolny</span>
+        {studia && (
+          <span>
+            <i className="kropka zjazd" /> zajęcia
+          </span>
+        )}
       </div>
 
       <h2 className="sekcja-tytul">W tym miesiącu</h2>

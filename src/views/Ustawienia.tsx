@@ -4,7 +4,7 @@ import { KONIEC_ZAJEC, POCZATEK_ZAJEC, ROK_SZKOLNY } from '../data/schoolCalenda
 import { eksportuj, importuj, odczytajKopie, poprosOTrwalyZapis, przywrocKalendarzMEN } from '../db'
 import { dataSlownie, dzisiaj } from '../logic/dates'
 import { useApp } from '../kontekst'
-import type { WyborGrupy } from '../model'
+import type { WyborGrupy, WyborLektoratu } from '../model'
 
 const GRUPY: { id: WyborGrupy; etykieta: string }[] = [
   { id: '1', etykieta: 'Grupa 1' },
@@ -12,8 +12,14 @@ const GRUPY: { id: WyborGrupy; etykieta: string }[] = [
   { id: 'obie', etykieta: 'Obie' },
 ]
 
+const LEKTORATY: { id: WyborLektoratu; etykieta: string }[] = [
+  { id: 'ang', etykieta: 'Angielski' },
+  { id: 'niem', etykieta: 'Niemiecki' },
+  { id: 'oba', etykieta: 'Oba' },
+]
+
 export function WidokUstawienia() {
-  const { ustawienia, zmienUstawienia, wpisy, odswiez, zapytaj, komunikat } = useApp()
+  const { ustawienia, zmienUstawienia, odswiez, zapytaj, komunikat } = useApp()
   const plik = useRef<HTMLInputElement>(null)
   const [trwaly, setTrwaly] = useState<boolean | null | undefined>(undefined)
 
@@ -50,7 +56,7 @@ export function WidokUstawienia() {
       const { wpisy: nowe, ustawienia: u } = odczytajKopie(await f.text())
       const wybor = await zapytaj({
         tytul: 'Import kopii zapasowej',
-        tresc: `Plik zawiera ${nowe.length} wpisów. Obecnie masz ${wpisy.length}.`,
+        tresc: `Plik zawiera ${nowe.length} wpisów (z obu planów).`,
         przyciski: [
           { id: 'polacz', etykieta: 'Dołącz do obecnych', styl: 'glowny' },
           { id: 'zastap', etykieta: 'Zastąp wszystkie wpisy', styl: 'usun' },
@@ -89,28 +95,48 @@ export function WidokUstawienia() {
     <div>
       <Naglowek tytul="Ustawienia" />
 
-      <section className="panel">
-        <h3>Moja grupa</h3>
-        <p>Lekcje drugiej grupy będą ukryte w planie.</p>
-        <div className="segmenty" role="radiogroup" aria-label="Grupa">
-          {GRUPY.map((g) => (
-            <button
-              key={g.id}
-              role="radio"
-              aria-checked={ustawienia.grupa === g.id}
-              className={ustawienia.grupa === g.id ? 'wybrany' : ''}
-              onClick={() => zmienUstawienia({ ...ustawienia, grupa: g.id })}
-            >
-              {g.etykieta}
-            </button>
-          ))}
-        </div>
-      </section>
+      {ustawienia.profil === 'studia' ? (
+        <section className="panel">
+          <h3>Mój lektorat</h3>
+          <p>W planie studiów są dwa lektoraty (Warsztaty kompetencji językowych 2). Drugi zostanie ukryty.</p>
+          <div className="segmenty" role="radiogroup" aria-label="Lektorat">
+            {LEKTORATY.map((g) => (
+              <button
+                key={g.id}
+                role="radio"
+                aria-checked={ustawienia.lektorat === g.id}
+                className={ustawienia.lektorat === g.id ? 'wybrany' : ''}
+                onClick={() => zmienUstawienia({ ...ustawienia, lektorat: g.id })}
+              >
+                {g.etykieta}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="panel">
+          <h3>Moja grupa</h3>
+          <p>Lekcje drugiej grupy będą ukryte w planie.</p>
+          <div className="segmenty" role="radiogroup" aria-label="Grupa">
+            {GRUPY.map((g) => (
+              <button
+                key={g.id}
+                role="radio"
+                aria-checked={ustawienia.grupa === g.id}
+                className={ustawienia.grupa === g.id ? 'wybrany' : ''}
+                onClick={() => zmienUstawienia({ ...ustawienia, grupa: g.id })}
+              >
+                {g.etykieta}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="panel">
         <h3>Kopia zapasowa</h3>
         <p>
-          Zapisz wszystkie wpisy ({wpisy.length}) do pliku JSON, np. w aplikacji Pliki lub na iCloud Drive. Z tego pliku możesz
+          Zapisz wszystkie wpisy (z obu planów) do pliku JSON, np. w aplikacji Pliki lub na iCloud Drive. Z tego pliku możesz
           je później przywrócić.
         </p>
         <div className="przyciski">
@@ -130,16 +156,18 @@ export function WidokUstawienia() {
         </div>
       </section>
 
-      <section className="panel">
-        <h3>Kalendarz szkolny</h3>
-        <p>
-          Rok szkolny {ROK_SZKOLNY}: od {dataSlownie(POCZATEK_ZAJEC)} {POCZATEK_ZAJEC.slice(0, 4)} do{' '}
-          {dataSlownie(KONIEC_ZAJEC)} {KONIEC_ZAJEC.slice(0, 4)}. Dni wolne z kalendarza MEN możesz edytować jak każdy wpis.
-        </p>
-        <button className="przycisk obrys" onClick={przywroc}>
-          Przywróć domyślny kalendarz szkolny
-        </button>
-      </section>
+      {ustawienia.profil === 'szkola' && (
+        <section className="panel">
+          <h3>Kalendarz szkolny</h3>
+          <p>
+            Rok szkolny {ROK_SZKOLNY}: od {dataSlownie(POCZATEK_ZAJEC)} {POCZATEK_ZAJEC.slice(0, 4)} do{' '}
+            {dataSlownie(KONIEC_ZAJEC)} {KONIEC_ZAJEC.slice(0, 4)}. Dni wolne z kalendarza MEN możesz edytować jak każdy wpis.
+          </p>
+          <button className="przycisk obrys" onClick={przywroc}>
+            Przywróć domyślny kalendarz szkolny
+          </button>
+        </section>
+      )}
 
       <section className="panel">
         <h3>Pamięć</h3>

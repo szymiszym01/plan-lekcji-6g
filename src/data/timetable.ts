@@ -10,6 +10,10 @@ export interface Zajecia {
   /** Brak = cała klasa. */
   grupa?: Grupa
   swietlica?: boolean
+  /** Tylko studia: forma zajęć (np. „wykład”), czy zdalnie i forma zaliczenia. */
+  forma?: string
+  online?: boolean
+  zaliczenie?: string
 }
 
 /** Jedna lekcja w planie: zajęcia całej klasy, dwie grupy albo świetlica. */

@@ -20,7 +20,7 @@ function formatCzas(sekundy: number) {
   return `${m}:${String(ss).padStart(2, '0')}`
 }
 
-function Odliczanie({ lekcje, teraz }: { lekcje: LekcjaWidok[]; teraz: Date }) {
+function Odliczanie({ lekcje, teraz, studia }: { lekcje: LekcjaWidok[]; teraz: Date; studia: boolean }) {
   const sek = teraz.getHours() * 3600 + teraz.getMinutes() * 60 + teraz.getSeconds()
   const biezaca = lekcje.find((l) => sek >= minuty(l.od) * 60 && sek < minuty(l.do) * 60)
   const nastepna = lekcje.find((l) => minuty(l.od) * 60 > sek)
@@ -32,7 +32,7 @@ function Odliczanie({ lekcje, teraz }: { lekcje: LekcjaWidok[]; teraz: Date }) {
       <div className="odliczanie" aria-live="polite">
         <span className="odliczanie-czas">{formatCzas(minuty(biezaca.do) * 60 - sek)}</span>
         <span className="odliczanie-opis">
-          do końca lekcji {biezaca.nr}
+          {studia ? 'do końca zajęć' : `do końca lekcji ${biezaca.nr}`}
           <small>{nazwa(biezaca)}{nastepna ? ` · potem ${nazwa(nastepna)}` : ''}</small>
         </span>
       </div>
@@ -43,7 +43,9 @@ function Odliczanie({ lekcje, teraz }: { lekcje: LekcjaWidok[]; teraz: Date }) {
       <div className="odliczanie" aria-live="polite">
         <span className="odliczanie-czas">{formatCzas(minuty(nastepna.od) * 60 - sek)}</span>
         <span className="odliczanie-opis">
-          {nastepna.nr === 1 ? 'do początku lekcji' : 'do lekcji'} {nastepna.nr}
+          {studia
+            ? nastepna.nr === 1 ? 'do początku zajęć' : 'do następnych zajęć'
+            : `${nastepna.nr === 1 ? 'do początku lekcji' : 'do lekcji'} ${nastepna.nr}`}
           <small>{nazwa(nastepna)} · {nastepna.od}</small>
         </span>
       </div>
@@ -80,14 +82,14 @@ function ListaLekcji({ dzien, teraz, czyDzis }: { dzien: Dzien; teraz?: Date; cz
 
 function PodgladNajblizszego({ od }: { od: DataISO }) {
   const { wpisy, ustawienia, dzis, otworzDzien } = useApp()
-  const nast = najblizszyDzienZLekcjami(od, wpisy, ustawienia.grupa)
+  const nast = najblizszyDzienZLekcjami(od, wpisy, ustawienia)
   if (!nast || nast.stan.rodzaj !== 'lekcje') return null
   const lekcje = nast.stan.lekcje.filter((l) => czyLekcja(l) || l.wpisy.length)
   const ile = roznicaDni(dzis, nast.data)
   return (
     <>
       <h2 className="sekcja-tytul">
-        Najbliższe lekcje{' '}
+        {ustawienia.profil === 'studia' ? 'Najbliższe zajęcia' : 'Najbliższe lekcje'}{' '}
         <small>
           {wielka(DNI[dzienTygodnia(nast.data)])}, {dataSlownie(nast.data)}
           {ile >= 0 ? ` · ${zaIleDni(ile)}` : ''}
@@ -117,7 +119,8 @@ export function WidokDzien({ data, ustawDate }: { data: DataISO; ustawDate: (d: 
   const teraz = useTeraz(1000)
   const kierunek = useRef<'lewo' | 'prawo' | null>(null)
   const czyDzis = data === dzis
-  const dzien = opisDnia(data, wpisy, ustawienia.grupa)
+  const studia = ustawienia.profil === 'studia'
+  const dzien = opisDnia(data, wpisy, ustawienia)
 
   const idz = (n: number) => {
     kierunek.current = n > 0 ? 'lewo' : 'prawo'
@@ -136,7 +139,9 @@ export function WidokDzien({ data, ustawDate }: { data: DataISO; ustawDate: (d: 
   if (dzien.stan.rodzaj === 'lekcje') {
     const lekcje = dzien.stan.lekcje.filter(czyLekcja)
     const ostatnia = lekcje[lekcje.length - 1]
-    if (ostatnia) podsumowanie = `${lekcje.length} ${lekcje.length === 1 ? 'lekcja' : lekcje.length < 5 ? 'lekcje' : 'lekcji'} · do ${ostatnia.do}`
+    if (ostatnia && studia) podsumowanie = `zajęcia ${lekcje[0].od.replace(/^0/, '')}–${ostatnia.do}`
+    else if (ostatnia)
+      podsumowanie = `${lekcje.length} ${lekcje.length === 1 ? 'lekcja' : lekcje.length < 5 ? 'lekcje' : 'lekcji'} · do ${ostatnia.do}`
   }
 
   const { stan } = dzien
@@ -172,6 +177,8 @@ export function WidokDzien({ data, ustawDate }: { data: DataISO; ustawDate: (d: 
     )
   else if (stan.rodzaj === 'weekend')
     blok = <Paski duze pigulka="Weekend" tytul={wielka(DNI[dzienTygodnia(data)])} podpis="Brak lekcji" />
+  else if (stan.rodzaj === 'brak')
+    blok = <Paski duze pigulka="Studia" tytul="Brak zajęć" podpis={`${wielka(DNI[dzienTygodnia(data)])}, ${dataSlownie(data)}`} />
 
   return (
     <div {...swipe}>
@@ -208,7 +215,7 @@ export function WidokDzien({ data, ustawDate }: { data: DataISO; ustawDate: (d: 
         key={data}
         className={kierunek.current === 'lewo' ? 'przesun-lewo' : kierunek.current === 'prawo' ? 'przesun-prawo' : ''}
       >
-        {czyDzis && stan.rodzaj === 'lekcje' && <Odliczanie lekcje={stan.lekcje} teraz={teraz} />}
+        {czyDzis && stan.rodzaj === 'lekcje' && <Odliczanie lekcje={stan.lekcje} teraz={teraz} studia={studia} />}
 
         {dzien.wydarzenia.length + dzien.luzne.length > 0 && (
           <div className="sekcja-wpisow">

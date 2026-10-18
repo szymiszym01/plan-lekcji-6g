@@ -1,17 +1,37 @@
 import type { ReactNode } from 'react'
 import { ROK_SZKOLNY } from '../data/schoolCalendar'
+import { NAZWA_STUDIOW } from '../data/studia'
 import type { LekcjaWidok } from '../logic/schedule'
 import { opisWpisu } from '../logic/opis'
 import { useLongPress } from '../hooks'
 import { useApp } from '../kontekst'
-import type { Wpis } from '../model'
+import type { Profil, Wpis } from '../model'
 import { IkonaDalej, IkonaWstecz } from './Ikony'
 
+const PROFILE: { id: Profil; etykieta: string }[] = [
+  { id: 'szkola', etykieta: 'klasa 6G' },
+  { id: 'studia', etykieta: 'Studia' },
+]
+
+/** Przełącznik planów (klasa 6G / Studia) i opis okresu. */
 export function Chipy() {
+  const { ustawienia, zmienUstawienia } = useApp()
   return (
     <div className="chipy">
-      <span className="chip pelny">klasa 6G</span>
-      <span className="chip">rok szkolny {ROK_SZKOLNY}</span>
+      <div className="chipy-profil" role="tablist" aria-label="Plan">
+        {PROFILE.map((p) => (
+          <button
+            key={p.id}
+            role="tab"
+            aria-selected={ustawienia.profil === p.id}
+            className={`chip${ustawienia.profil === p.id ? ' pelny' : ''}`}
+            onClick={() => zmienUstawienia({ ...ustawienia, profil: p.id })}
+          >
+            {p.etykieta}
+          </button>
+        ))}
+      </div>
+      <span className="chip okres">{ustawienia.profil === 'studia' ? NAZWA_STUDIOW : `rok szkolny ${ROK_SZKOLNY}`}</span>
     </div>
   )
 }
@@ -118,26 +138,27 @@ export function KartaLekcji(props: {
     )
   }
 
-  const grupy = lekcja.zajecia.some((z) => z.grupa)
+  const grupy = lekcja.zajecia.some((z) => z.grupa || z.forma)
   return (
     <div
       className={`karta${grupy ? ' grupy' : ''}${aktualna ? ' aktualna' : ''}${lekcja.zajecia.every((z) => z.odwolana) ? ' odwolana-cala' : ''}`}
       role="button"
       tabIndex={0}
-      aria-label={`Lekcja ${lekcja.nr}: ${lekcja.zajecia.map((z) => (z.grupa ? `gr ${z.grupa} ` : '') + z.przedmiot).join(', ')}`}
+      aria-label={`${lekcja.od} ${lekcja.zajecia.map((z) => (z.grupa ? `gr ${z.grupa} ` : '') + z.przedmiot).join(', ')}`}
       {...lp}
     >
       {aktualna && <span className="znacznik-teraz">TERAZ</span>}
       {kropki}
       {lekcja.zajecia.map((z, i) => (
-        <div key={i} className={`zajecia${z.grupa ? '' : ' bez-grupy'}${z.odwolana ? ' odwolana' : ''}`}>
+        <div key={i} className={`zajecia${z.grupa || z.forma ? '' : ' bez-grupy'}${z.odwolana ? ' odwolana' : ''}`}>
           {z.grupa && <span className="gr">gr {z.grupa}</span>}
+          {z.forma && <span className="gr forma">{z.forma}</span>}
           <div style={{ minWidth: 0 }}>
             {z.zmiana && <span className="etykieta-zmiany">{z.odwolana ? 'Odwołana' : 'Zastępstwo'}</span>}
             <div className="przedmiot">{z.przedmiot}</div>
             {z.nauczyciel && <div className="nauczyciel">{z.nauczyciel}</div>}
           </div>
-          <span className="sala">s. {z.sala}</span>
+          <span className="sala">{z.online ? 'online' : z.sala ? `s. ${z.sala}` : ''}</span>
         </div>
       ))}
       {pokazWpisy && lekcja.wpisy.length > 0 && (
