@@ -1,0 +1,1276 @@
+/* Kolory odczytane bezpośrednio z plan-lekcji.pdf */
+:root {
+  --tlo: #f5dfe2;
+  --kolo: #ecc5cb;
+  --bordo: #4a2431;
+  --karta: #fff9fa;
+  --nauczyciel: #8a5a66;
+  --sala: #c97e8b;
+  --pasek: #ebc3c9;
+  --linia: #e9c9cf;
+  --cieply: #e9a3b1;
+  --notatka: #f3cfd6;
+
+  --paski: repeating-linear-gradient(135deg, var(--pasek) 0 7px, color-mix(in srgb, var(--pasek) 45%, var(--tlo)) 7px 14px);
+  --radius: 16px;
+  --font: 'Bricolage Grotesque Variable', system-ui, -apple-system, sans-serif;
+
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --tabbar: 64px;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--tlo);
+  color: var(--bordo);
+  font-family: var(--font);
+  font-variation-settings: 'opsz' 96;
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  font-variation-settings: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+
+/* Dekoracyjne koło jak w PDF */
+.kolo-tla {
+  position: fixed;
+  top: calc(-38vw + var(--safe-t));
+  right: -34vw;
+  width: 92vw;
+  height: 92vw;
+  max-width: 520px;
+  max-height: 520px;
+  border-radius: 50%;
+  background: var(--kolo);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  padding: calc(var(--safe-t) + 14px) calc(var(--safe-r) + 16px) calc(var(--safe-b) + var(--tabbar) + 96px)
+    calc(var(--safe-l) + 16px);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.app.szeroka {
+  max-width: none;
+  padding-left: calc(var(--safe-l));
+  padding-right: calc(var(--safe-r));
+}
+
+/* ---------- Nagłówek ---------- */
+
+.chipy {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  border: 1.5px solid var(--bordo);
+}
+
+.chip.pelny {
+  background: var(--bordo);
+  color: var(--tlo);
+}
+
+.naglowek {
+  margin: 10px 0 16px;
+}
+
+.szeroka .naglowek,
+.szeroka .chipy {
+  padding: 0 16px;
+}
+
+.naglowek-wiersz {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tytul {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 44px;
+  line-height: 0.95;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.podtytul {
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--nauczyciel);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.strzalka {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--bordo);
+}
+
+.strzalka:active {
+  background: var(--karta);
+}
+
+.przycisk-dzis {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--karta);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bordo);
+  position: relative;
+}
+
+/* powiększony obszar dotyku dla małych przycisków */
+.przycisk-dzis::after,
+.wpis::after {
+  content: '';
+  position: absolute;
+  inset: -8px -4px;
+}
+
+/* ---------- Odliczanie ---------- */
+
+.odliczanie {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bordo);
+  color: var(--tlo);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+.odliczanie-czas {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.odliczanie-opis {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.odliczanie-opis small {
+  display: block;
+  opacity: 0.75;
+  font-weight: 500;
+}
+
+/* ---------- Wiersz lekcji ---------- */
+
+.lista-lekcji {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wiersz {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.godzina {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 2px;
+}
+
+.numer {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bordo);
+  color: var(--tlo);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  flex: none;
+}
+
+.czasy {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.czasy span {
+  display: block;
+  color: var(--nauczyciel);
+  font-weight: 650;
+}
+
+.wiersz.minela {
+  opacity: 0.55;
+}
+
+/* ---------- Karta lekcji ---------- */
+
+.karta {
+  position: relative;
+  background: var(--karta);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+  width: 100%;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.12s;
+}
+
+.karta:active {
+  transform: scale(0.985);
+}
+
+.karta.odwolana-cala {
+  background: color-mix(in srgb, var(--karta) 55%, transparent);
+}
+
+.karta.aktualna {
+  box-shadow: 0 0 0 2.5px var(--bordo);
+}
+
+.znacznik-teraz {
+  position: absolute;
+  top: -9px;
+  right: 12px;
+  background: var(--bordo);
+  color: var(--tlo);
+  font-size: 11px;
+  font-weight: 750;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+
+.zajecia {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: end;
+  column-gap: 10px;
+}
+
+.zajecia + .zajecia {
+  border-top: 1.5px dashed var(--linia);
+  margin-top: 7px;
+  padding-top: 7px;
+}
+
+.zajecia.bez-grupy {
+  grid-template-columns: 1fr auto;
+}
+
+.przedmiot {
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+.grupy .przedmiot {
+  font-size: 16px;
+}
+
+.nauczyciel {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--nauczyciel);
+  margin-top: 2px;
+}
+
+.sala {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--sala);
+  white-space: nowrap;
+  padding-bottom: 1px;
+}
+
+.gr {
+  align-self: center;
+  background: var(--tlo);
+  color: var(--sala);
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.zajecia.odwolana .przedmiot,
+.zajecia.odwolana .nauczyciel,
+.zajecia.odwolana .sala {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  opacity: 0.45;
+}
+
+.zajecia.odwolana {
+  filter: grayscale(1);
+}
+
+.etykieta-zmiany {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sala);
+  margin-bottom: 1px;
+}
+
+/* ---------- Świetlica i dni wolne: paski ---------- */
+
+.paski {
+  background: var(--paski);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 64px;
+  padding: 10px;
+  text-align: center;
+  width: 100%;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pigulka {
+  background: color-mix(in srgb, var(--karta) 80%, transparent);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.paski small {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--nauczyciel);
+}
+
+.paski.duze {
+  min-height: 180px;
+  gap: 10px;
+  padding: 24px 16px;
+}
+
+.paski.duze .pigulka {
+  font-size: 13px;
+  padding: 5px 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.paski.duze h2 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* ---------- Wpisy ---------- */
+
+.wpisy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.wpis {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 550;
+  line-height: 1.3;
+  background: var(--notatka);
+  color: var(--bordo);
+}
+
+.wpis b {
+  font-weight: 750;
+}
+
+.wpis .typ {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-top: 2px;
+}
+
+.wpis.sprawdzian {
+  background: var(--bordo);
+  color: var(--tlo);
+}
+
+.wpis.wydarzenie {
+  background: var(--cieply);
+}
+
+.wpis.wolne {
+  background: var(--paski);
+}
+
+.wpis.zmiana {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--sala);
+}
+
+.sekcja-wpisow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.wpis.duzy {
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  font-size: 15px;
+  min-height: 44px;
+}
+
+.kropki {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.kropka {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--notatka);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bordo) 25%, transparent);
+}
+
+.kropka.sprawdzian {
+  background: var(--bordo);
+  box-shadow: none;
+}
+
+.kropka.wydarzenie {
+  background: var(--cieply);
+  box-shadow: none;
+}
+
+.kropka.zmiana {
+  background: var(--sala);
+  box-shadow: none;
+}
+
+.kropka.wolne {
+  background: var(--paski);
+}
+
+/* ---------- Teksty pomocnicze ---------- */
+
+.sekcja-tytul {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin: 26px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 2.5px solid var(--bordo);
+}
+
+.sekcja-tytul small {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nauczyciel);
+  letter-spacing: 0;
+}
+
+.pusto {
+  color: var(--nauczyciel);
+  font-weight: 550;
+  font-size: 15px;
+  padding: 12px 2px;
+}
+
+.przycisk {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 14px;
+  background: var(--bordo);
+  color: var(--tlo);
+  font-weight: 750;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.przycisk.jasny {
+  background: var(--karta);
+  color: var(--bordo);
+}
+
+.przycisk.obrys {
+  background: transparent;
+  color: var(--bordo);
+  box-shadow: inset 0 0 0 1.5px var(--bordo);
+}
+
+.przycisk.usun {
+  background: transparent;
+  color: #a3243b;
+  box-shadow: inset 0 0 0 1.5px #a3243b;
+}
+
+.przycisk:disabled {
+  opacity: 0.5;
+}
+
+/* ---------- Pasek kart ---------- */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px calc(var(--safe-r) + 6px) calc(var(--safe-b) + 6px) calc(var(--safe-l) + 6px);
+  background: color-mix(in srgb, var(--karta) 88%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--linia);
+}
+
+.tab {
+  flex: 1;
+  min-height: 52px;
+  max-width: 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--sala);
+  border-radius: 12px;
+}
+
+.tab.aktywna {
+  color: var(--bordo);
+}
+
+.tab.aktywna svg {
+  stroke-width: 2.4;
+}
+
+.fab {
+  position: fixed;
+  z-index: 21;
+  right: calc(var(--safe-r) + 18px);
+  bottom: calc(var(--safe-b) + var(--tabbar) + 18px);
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--bordo);
+  color: var(--tlo);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 18px rgba(74, 36, 49, 0.28);
+}
+
+.fab:active {
+  transform: scale(0.94);
+}
+
+/* ---------- Tydzień ---------- */
+
+.tydzien-przewijanie {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+}
+
+.tydzien-przewijanie::-webkit-scrollbar {
+  display: none;
+}
+
+.siatka-tygodnia {
+  display: grid;
+  grid-template-columns: 84px repeat(5, 200px);
+  grid-auto-rows: auto;
+  column-gap: 8px;
+  row-gap: 8px;
+  width: max-content;
+  padding-right: 16px;
+}
+
+.siatka-tygodnia .kol-godzin,
+.siatka-tygodnia .rog {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--tlo);
+  padding-left: 12px;
+  /* zakrywa odstępy siatki, żeby karty nie prześwitywały pod kolumną godzin */
+  margin-right: -8px;
+  box-shadow: 0 -8px 0 var(--tlo), 8px 0 0 var(--tlo), 8px -8px 0 var(--tlo);
+}
+
+.siatka-tygodnia .rog {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background: var(--tlo);
+  padding-left: 12px;
+  margin-right: -8px;
+}
+
+.siatka-tygodnia .rog {
+  z-index: 4;
+}
+
+.naglowek-dnia {
+  scroll-snap-align: start;
+  scroll-margin-left: 92px;
+  font-size: 17px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  padding: 0 2px 6px;
+  border-bottom: 2.5px solid var(--bordo);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  text-align: left;
+}
+
+.naglowek-dnia-nazwa {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--bordo) !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+}
+
+.naglowek-dnia span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nauczyciel);
+}
+
+.naglowek-dnia.dzis {
+  color: var(--bordo);
+}
+
+.naglowek-dnia.dzis span {
+  background: var(--bordo);
+  color: var(--tlo);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.siatka-tygodnia .karta {
+  min-height: 74px;
+  padding: 10px 12px;
+}
+
+.siatka-tygodnia .przedmiot {
+  font-size: 15.5px;
+}
+
+.siatka-tygodnia .grupy .przedmiot {
+  font-size: 13.5px;
+}
+
+.siatka-tygodnia .nauczyciel,
+.siatka-tygodnia .sala {
+  font-size: 11px;
+}
+
+.siatka-tygodnia .gr {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+.siatka-tygodnia .zajecia {
+  column-gap: 6px;
+}
+
+.siatka-tygodnia .paski {
+  min-height: 74px;
+}
+
+.siatka-tygodnia .pigulka {
+  font-size: 14px;
+  padding: 6px 14px;
+}
+
+.siatka-tygodnia .kropki {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+}
+
+.kolumna-wolna {
+  grid-row: 2 / span 8;
+}
+
+.kolumna-wolna.paski {
+  gap: 8px;
+}
+
+.kolumna-wolna .pigulka {
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.kolumna-wolna h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* ---------- Miesiąc ---------- */
+
+.siatka-miesiaca {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.dzien-tyg {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--nauczyciel);
+  padding-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.komorka {
+  position: relative;
+  min-height: 62px;
+  border-radius: 12px;
+  background: var(--karta);
+  padding: 6px 5px 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.komorka.weekend {
+  background: color-mix(in srgb, var(--karta) 45%, transparent);
+}
+
+.komorka.wolny {
+  background: var(--paski);
+}
+
+.komorka.poza {
+  opacity: 0.35;
+}
+
+.komorka .nr {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 14.5px;
+  font-weight: 750;
+}
+
+.komorka.dzis .nr {
+  background: var(--bordo);
+  color: var(--tlo);
+}
+
+.komorka .kropki {
+  justify-content: center;
+}
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nauczyciel);
+}
+
+.legenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legenda .kropka {
+  width: 12px;
+  height: 12px;
+}
+
+/* ---------- Lista nadchodzących ---------- */
+
+.pozycja {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  background: var(--karta);
+  border-radius: var(--radius);
+  padding: 10px 14px 10px 10px;
+  min-height: 64px;
+}
+
+.pozycja + .pozycja {
+  margin-top: 8px;
+}
+
+.data-blok {
+  flex: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--tlo);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.data-blok b {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.data-blok span {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sala);
+  margin-top: 2px;
+}
+
+.pozycja.sprawdzian .data-blok {
+  background: var(--bordo);
+  color: var(--tlo);
+}
+
+.pozycja.wydarzenie .data-blok {
+  background: var(--cieply);
+}
+
+.pozycja.wolne .data-blok {
+  background: var(--paski);
+}
+
+.pozycja-tresc {
+  flex: 1;
+  min-width: 0;
+}
+
+.pozycja-tresc .przedmiot {
+  font-size: 16.5px;
+}
+
+.za-ile {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--sala);
+}
+
+/* ---------- Ustawienia ---------- */
+
+.panel {
+  background: var(--karta);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.panel h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.panel p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--nauczyciel);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.panel .przyciski {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.segmenty {
+  display: flex;
+  background: var(--tlo);
+  border-radius: 14px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.segmenty button {
+  flex: 1;
+  min-height: 44px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--nauczyciel);
+  padding: 0 6px;
+}
+
+.segmenty button.wybrany {
+  background: var(--bordo);
+  color: var(--tlo);
+}
+
+.segmenty.male button {
+  font-size: 13px;
+  min-height: 40px;
+}
+
+/* ---------- Arkusz (formularz) i okna ---------- */
+
+.zaslona {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(74, 36, 49, 0.35);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: pojaw 0.18s ease-out;
+}
+
+.arkusz {
+  width: 100%;
+  max-width: 560px;
+  max-height: calc(100dvh - var(--safe-t) - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--tlo);
+  border-radius: 24px 24px 0 0;
+  padding: 10px calc(var(--safe-r) + 16px) calc(var(--safe-b) + 20px) calc(var(--safe-l) + 16px);
+  animation: wysun 0.22s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.uchwyt {
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--pasek);
+  margin: 0 auto 10px;
+}
+
+.arkusz-naglowek {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.arkusz-naglowek h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.pole {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.pole > span {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--nauczyciel);
+  margin: 0 0 5px 4px;
+}
+
+.pole input,
+.pole select,
+.pole textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--karta);
+  padding: 12px 14px;
+  font-size: 16px; /* 16px = brak auto-zoomu w Safari */
+  font-weight: 550;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.pole select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234a2431' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+
+.pole textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.pole input:focus,
+.pole select:focus,
+.pole textarea:focus {
+  box-shadow: 0 0 0 2px var(--bordo);
+}
+
+.pola-obok {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.typy {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin: 0 -16px 14px;
+  padding: 2px 16px;
+  scrollbar-width: none;
+}
+
+.typy::-webkit-scrollbar {
+  display: none;
+}
+
+.typy button {
+  flex: none;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: inset 0 0 0 1.5px var(--bordo);
+}
+
+.typy button.wybrany {
+  background: var(--bordo);
+  color: var(--tlo);
+}
+
+.akcje {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.akcje .przycisk {
+  flex: 1;
+}
+
+.okno {
+  margin: auto 20px;
+  width: 100%;
+  max-width: 360px;
+  background: var(--karta);
+  border-radius: 22px;
+  padding: 20px;
+  animation: wysun 0.2s ease-out;
+}
+
+.zaslona.srodek {
+  align-items: center;
+}
+
+.okno h3 {
+  margin: 0 0 6px;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.okno p {
+  margin: 0 0 16px;
+  color: var(--nauczyciel);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.okno .przyciski {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.komunikat {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--safe-b) + var(--tabbar) + 90px);
+  transform: translateX(-50%);
+  z-index: 50;
+  background: var(--bordo);
+  color: var(--tlo);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 650;
+  font-size: 14px;
+  white-space: nowrap;
+  animation: pojaw 0.2s;
+}
+
+@keyframes pojaw {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes wysun {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+
+.przesun-lewo {
+  animation: zlewa 0.22s ease-out;
+}
+
+.przesun-prawo {
+  animation: zprawa 0.22s ease-out;
+}
+
+@keyframes zlewa {
+  from {
+    transform: translateX(28px);
+    opacity: 0.2;
+  }
+}
+
+@keyframes zprawa {
+  from {
+    transform: translateX(-28px);
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
