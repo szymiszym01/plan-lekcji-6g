@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "icons": "pwa-assets-generator"
+    "icons": "node scripts/ikona.mjs && pwa-assets-generator --override"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",

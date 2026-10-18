@@ -18,7 +18,7 @@ npm run build    # wersja produkcyjna do folderu dist/
 npm run preview  # podgląd wersji produkcyjnej (z service workerem)
 ```
 
-Ikony generuje `npm run icons` z pliku `public/icon.svg`.
+Ikony generuje `npm run icons` z pliku `public/kot-rycerz.png` (skrypt `scripts/ikona.mjs`).
 
 ## Publikacja na GitHub Pages
 
