@@ -19,7 +19,7 @@ const LEKTORATY: { id: WyborLektoratu; etykieta: string }[] = [
 ]
 
 export function WidokUstawienia() {
-  const { ustawienia, zmienUstawienia, odswiez, zapytaj, komunikat } = useApp()
+  const { ustawienia, zmienUstawienia, wpisy, odswiez, zapytaj, komunikat } = useApp()
   const plik = useRef<HTMLInputElement>(null)
   const [trwaly, setTrwaly] = useState<boolean | null | undefined>(undefined)
 
@@ -27,27 +27,45 @@ export function WidokUstawienia() {
     navigator.storage?.persisted?.().then(setTrwaly, () => setTrwaly(null))
   }, [])
 
-  async function eksport() {
-    const blob = await eksportuj()
-    const nazwa = `plan-lekcji-6g-kopia-${dzisiaj()}.json`
-    const file = new File([blob], nazwa, { type: 'application/json' })
-    // Na iPhonie arkusz udostępniania pozwala „Zachować w Plikach”.
-    if (navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: 'Kopia zapasowa planu lekcji' })
-        return
-      } catch (e) {
-        if ((e as Error).name === 'AbortError') return
-      }
+  // Plik kopii przygotowujemy z wyprzedzeniem: Safari na iPhonie otwiera arkusz udostępniania
+  // tylko bezpośrednio po stuknięciu, bez czekania na odczyt z bazy.
+  const [kopia, setKopia] = useState<File | null>(null)
+  useEffect(() => {
+    let aktualne = true
+    eksportuj().then((blob) => {
+      if (aktualne)
+        setKopia(new File([blob], `plan-lekcji-6g-kopia-${dzisiaj()}.json`, { type: 'application/json' }))
+    })
+    return () => {
+      aktualne = false
     }
-    const url = URL.createObjectURL(blob)
+  }, [wpisy, ustawienia])
+
+  function pobierz(file: File) {
+    const url = URL.createObjectURL(file)
     const a = document.createElement('a')
     a.href = url
-    a.download = nazwa
+    a.download = file.name
     document.body.appendChild(a)
     a.click()
     a.remove()
-    setTimeout(() => URL.revokeObjectURL(url), 2000)
+    setTimeout(() => URL.revokeObjectURL(url), 5000)
+  }
+
+  function eksport() {
+    if (!kopia) return komunikat('Przygotowuję kopię, spróbuj za chwilę')
+    // Na iPhonie arkusz udostępniania pozwala „Zachować w Plikach”.
+    if (navigator.canShare?.({ files: [kopia] })) {
+      navigator.share({ files: [kopia], title: 'Kopia zapasowa planu lekcji' }).then(
+        () => komunikat('Kopia zapisana'),
+        (e: Error) => {
+          if (e.name === 'AbortError') return
+          pobierz(kopia)
+        },
+      )
+      return
+    }
+    pobierz(kopia)
   }
 
   async function wybranoPlik(f: File | undefined) {
