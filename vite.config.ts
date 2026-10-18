@@ -36,6 +36,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Obrazy źródłowe ikony nie są potrzebne offline.
+        globIgnores: ['**/icon.png', '**/kot-rycerz.png'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
       },
