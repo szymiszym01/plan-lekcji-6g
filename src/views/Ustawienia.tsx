@@ -59,19 +59,50 @@ export function WidokUstawienia() {
       navigator.share({ files: [kopia], title: 'Kopia zapasowa planu lekcji' }).then(
         () => komunikat('Kopia zapisana'),
         (e: Error) => {
-          if (e.name === 'AbortError') return
+          if (e.name === 'AbortError') return komunikat('Anulowano')
+          komunikat(`Udostępnianie nie działa (${e.name}), pobieram plik`)
           pobierz(kopia)
         },
       )
       return
     }
     pobierz(kopia)
+    komunikat('Pobrano plik kopii (Pliki → Pobrane)')
+  }
+
+  /** Zapasowy sposób: cała kopia jako tekst w schowku (np. do wklejenia w Notatki). */
+  function doSchowka() {
+    if (!kopia) return komunikat('Przygotowuję kopię, spróbuj za chwilę')
+    const tekst = kopia.text()
+    const zapis = navigator.clipboard?.write
+      ? navigator.clipboard.write([new ClipboardItem({ 'text/plain': tekst.then((t) => new Blob([t], { type: 'text/plain' })) })])
+      : tekst.then((t) => navigator.clipboard.writeText(t))
+    zapis.then(
+      () => komunikat('Skopiowano kopię do schowka'),
+      (e: Error) => komunikat(`Nie udało się skopiować (${e.name})`),
+    )
+  }
+
+  async function wklejZeSchowka() {
+    try {
+      await wczytajKopie(await navigator.clipboard.readText())
+    } catch (e) {
+      komunikat(`Nie udało się wkleić (${(e as Error).name})`)
+    }
   }
 
   async function wybranoPlik(f: File | undefined) {
     if (!f) return
     try {
-      const { wpisy: nowe, ustawienia: u } = odczytajKopie(await f.text())
+      await wczytajKopie(await f.text())
+    } finally {
+      if (plik.current) plik.current.value = ''
+    }
+  }
+
+  async function wczytajKopie(tekst: string) {
+    try {
+      const { wpisy: nowe, ustawienia: u } = odczytajKopie(tekst)
       const wybor = await zapytaj({
         tytul: 'Import kopii zapasowej',
         tresc: `Plik zawiera ${nowe.length} wpisów (z obu planów).`,
@@ -88,8 +119,6 @@ export function WidokUstawienia() {
       komunikat(`Zaimportowano ${nowe.length} wpisów`)
     } catch (e) {
       await zapytaj({ tytul: 'Nie udało się zaimportować', tresc: (e as Error).message, przyciski: [{ id: 'ok', etykieta: 'OK', styl: 'glowny' }] })
-    } finally {
-      if (plik.current) plik.current.value = ''
     }
   }
 
@@ -163,6 +192,12 @@ export function WidokUstawienia() {
           </button>
           <button className="przycisk obrys" onClick={() => plik.current?.click()}>
             Importuj JSON
+          </button>
+          <button className="przycisk obrys" onClick={doSchowka}>
+            Kopiuj do schowka
+          </button>
+          <button className="przycisk obrys" onClick={wklejZeSchowka}>
+            Wklej ze schowka
           </button>
           <input
             ref={plik}

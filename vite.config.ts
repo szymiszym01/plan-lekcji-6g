@@ -8,12 +8,23 @@ const base = process.env.BASE_PATH ?? '/'
 
 export default defineConfig({
   base,
-  define: { __WERSJA__: JSON.stringify(process.env.npm_package_version ?? 'dev') },
+  define: {
+    // np. „1.0.0 · 18.10 21:40” — widać w Ustawieniach, która wersja jest na telefonie
+    __WERSJA__: JSON.stringify(
+      `${process.env.npm_package_version ?? 'dev'} · ${new Date().toLocaleString('pl-PL', {
+        timeZone: 'Europe/Warsaw',
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`,
+    ),
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      injectRegister: false, // rejestracja w src/main.tsx (z automatycznym przeładowaniem)
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png'],
       manifest: {
         name: 'Plan lekcji 6G',
